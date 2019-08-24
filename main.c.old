@@ -13,7 +13,7 @@ long long int: "long long int", unsigned long long int: "unsigned long long int"
        void *: "pointer to void",                int *: "pointer to int",         \
       default: "other")
 
-// Funções de apoio
+// FunÃ§Ãµes de apoio
 void concatenar_string(char *a, char *b) {
     while(*a) a++;
     while(*b) {
