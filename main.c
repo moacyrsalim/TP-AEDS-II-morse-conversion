@@ -1,41 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#define typename(x) _Generic((x),                                                 \
-        _Bool: "_Bool",                  unsigned char: "unsigned char",          \
-         char: "char",                     signed char: "signed char",            \
-    short int: "short int",         unsigned short int: "unsigned short int",     \
-          int: "int",                     unsigned int: "unsigned int",           \
-     long int: "long int",           unsigned long int: "unsigned long int",      \
-long long int: "long long int", unsigned long long int: "unsigned long long int", \
-        float: "float",                         double: "double",                 \
-  long double: "long double",                   char *: "pointer to char",        \
-       void *: "pointer to void",                int *: "pointer to int",         \
-      default: "other")
-
-// Funções de apoio
-void concatenar_string(char *a, char *b) {
-    while(*a) a++;
-    while(*b) {
-        *a = *b;
-        b++;
-        a++;
-    }
-    *a = '\0';
-}
-
-void concatenar_char(char *a, char b) {
-    while(*a) a++;
-    *a = b;
-    a++;
-    *a = '\0';
-}
-
-void concatena_espaco(char* s) {
-    int tam = strlen(s);
-    memset(s+tam, ' ', 1);
-    s[tam + 1] = '\0';
-}
 
 typedef struct morse_map_node {
     char letter;
@@ -47,7 +12,7 @@ typedef struct morse_map_node {
 MorseTreeNode* new_node()  {
     MorseTreeNode* node = (MorseTreeNode*)malloc(sizeof(MorseTreeNode));
     node->letter = ' ';
-    node->morse = " ";
+    node->morse = ' ';
     node->left = NULL;
     node->right = NULL;
     return node;
@@ -116,62 +81,19 @@ char find_letter(MorseTreeNode* root, char* morse) {
     for (char* it = morse; *it != '\0'; it++) {
         if(*it == '.') {
             current = current->left;
-        } else if(*it == '-') {
+        } else if(*it == '-'){
             current = current->right;
         }
     }
     return current->letter;
 }
 
-char* find_morse(MorseTreeNode* root, char letter) {
-    if (root->letter == letter) {
-        return root->morse;
-    } else {
-        if (root->left != NULL) {
-            MorseTreeNode* left = find_morse(root->left, letter);
-            if (left != NULL) {
-                return left;
-            }
-        }
-        if (root->right != NULL) {
-            return find_morse(root->right, letter);
-        }
+char* convert_to_string(MorseTreeNode* root, char* str) {
+    char* converted = "";
+    for(char* it = str; *it != '\0'; it++) {
+        strcat(converted, find_letter(root, *it));
     }
-
-    return NULL;
-}
-
-char* convert_to_text(MorseTreeNode* root, char* morse) {
-    char* frase_texto = calloc(500, sizeof(char*));
-
-    char* splitted = strtok(morse, " ");
-    while(splitted != NULL) {
-        char letter = find_letter(root, splitted);;
-        if(splitted == "/") {
-            concatena_espaco(frase_texto);
-        } else {
-            concatenar_char(frase_texto, letter);
-        }
-        splitted = strtok(NULL, " ");
-    }
-    return frase_texto;
-}
-
-char* convert_to_morse(MorseTreeNode* root, char* frase) {
-    frase[strcspn(frase, "\n")] = 0;
-    char* frase_morse = calloc(500, sizeof(char*));
-    for(char* it = frase; *it != '\0'; it++) {
-        char* morse = find_morse(root, *it);
-        if(morse != NULL) {
-            if(*it == ' ') {
-                concatenar_string(frase_morse, " / ");
-            } else {
-                concatenar_string(frase_morse, morse);
-                concatena_espaco(frase_morse);
-            }
-        }
-    }
-    return frase_morse;
+    return converted;
 }
 
 void print_preorder(MorseTreeNode* root) {
@@ -199,44 +121,14 @@ int main() {
     MorseTreeNode* root = new_node();
     create_tree(root);
 
+    FILE *fp;
+    char str[1000];
+    char* filename = "input.txt";
+    fp = fopen(filename, "r");
+    while (fgets(str, 1000, fp) != NULL);
+    fclose(fp);
 
-    // Converter morse em texto
-    FILE* file_morse;
-    char* morse = calloc(500, sizeof(char*));
-
-    file_morse = fopen("morses.txt", "r");
-    char* tmp;
-
-    while(fgets((char*)morse, 500, (FILE*) file_morse)) {
-        morse[strcspn(morse, "\n")] = 0;
-
-        tmp = malloc(sizeof(morse));
-        strncpy(tmp, morse, strlen(morse));
-
-        char* frase_texto = convert_to_text(root, morse);
-        printf("\"%s\" = %s\n", tmp, frase_texto);
-
-        free(tmp);
-    }
-
-    fclose(file_morse);
-
-
-    printf("\n\n");
-
-
-    // Conveter textos para morse
-    FILE* file_text;
-    char* frase = calloc(500, sizeof(char*));
-
-    file_text = fopen("textos.txt", "r");
-
-    while(fgets((char*)frase, 500, (FILE*) file_text)) {
-        char* frase_morse = convert_to_morse(root, frase);
-        printf("\"%s\" = %s\n", frase, frase_morse);
-    }
-
-    fclose(file_text);
+    char *morse_convert = convert_to_string(root, str);
 
     return 0;
 }
